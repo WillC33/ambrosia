@@ -6,26 +6,32 @@ defmodule Ambrosia.Application do
   """
   use Application
   require Logger
-  
+
   @impl true
   def start(_type, _args) do
-    Logger.info("🏛️ Gearing up to Serve the food of the gods...")
-    
+    Logger.info("🏛️ Welcome to your Ambrosia Server...")
+
     # Get configuration
     config = load_config()
-    
+
     # Define child processes
-    children = [
-      # Metrics supervisor
-      {Ambrosia.Telemetry, []},
-      # Rate limiter (ETS-based)
-      {Ambrosia.RateLimiter, [max_requests: 10, window_ms: 1000]},
-      # Connection manager
-      {Ambrosia.ConnectionManager, config},
-      # Ranch listener for TCP connections
-      ranch_child_spec(config)
-    ] ++ metrics_children()  # Add metrics endpoint if enabled
-    
+    # Add metrics endpoint if enabled
+    children =
+      [
+        # Metrics supervisor
+        {Ambrosia.Telemetry, []},
+        # Rate limiter (ETS-based)
+        {Ambrosia.RateLimiter,
+         [
+           max_requests: config[:rate_limit_requests] || 10,
+           window_ms: config[:rate_limit_window_ms] || 1000
+         ]},
+        # Connection manager
+        {Ambrosia.ConnectionManager, config},
+        # Ranch listener for TCP connections
+        ranch_child_spec(config)
+      ] ++ metrics_children()
+
     # Supervision strategy:
     # - one_for_one: if a child dies, only restart that child
     # - max_restarts: 10 restarts in 10 seconds before giving up
@@ -35,40 +41,39 @@ defmodule Ambrosia.Application do
       max_seconds: 10,
       name: Ambrosia.Supervisor
     ]
-    
+
     case Supervisor.start_link(children, opts) do
       {:ok, pid} ->
         Logger.info("✨ Ambrosia listening on port #{config.port}")
         {:ok, pid}
+
       error ->
         Logger.error("Failed to start Ambrosia: #{inspect(error)}")
         error
     end
   end
-  
+
   @impl true
   def stop(_state) do
     Logger.info("🌙 Ambrosia shutting down gracefully...")
     :ok
   end
-  
+
   defp metrics_children do
     if System.get_env("METRICS_ENABLED") == "true" do
       port = String.to_integer(System.get_env("METRICS_PORT", "9568"))
-      
+
       Logger.info("Starting metrics endpoint on port #{port}")
-      
+
       [
         {Plug.Cowboy,
-         scheme: :http,
-         plug: Ambrosia.MetricsExporter,
-         options: [port: port]}
+         scheme: :http, plug: Ambrosia.MetricsExporter, options: [port: port]}
       ]
     else
       []
     end
   end
-  
+
   defp ranch_child_spec(config) do
     ranch_opts = %{
       socket_opts: [
@@ -82,7 +87,7 @@ defmodule Ambrosia.Application do
       max_connections: config.max_connections,
       num_acceptors: System.schedulers_online() * 2
     }
-    
+
     :ranch.child_spec(
       :ambrosia_listener,
       :ranch_ssl,
@@ -91,15 +96,31 @@ defmodule Ambrosia.Application do
       config
     )
   end
-  
+
   defp load_config do
+    hostname = System.get_env("HOSTNAME")
+    env = Application.get_env(:ambrosia, :environment, :prod)
+
+    # Require hostname in production
+    if env == :prod && is_nil(hostname) do
+      raise """
+      HOSTNAME environment variable is required in production.
+      Set it to your capsule's domain name.
+      """
+    end
+
     %{
       port: Application.get_env(:ambrosia, :port, 1965),
       root_dir: Application.get_env(:ambrosia, :root_dir, "./gemini"),
       cert_file: Application.get_env(:ambrosia, :cert_file, "./certs/cert.pem"),
       key_file: Application.get_env(:ambrosia, :key_file, "./certs/key.pem"),
       max_connections: Application.get_env(:ambrosia, :max_connections, 1000),
-      request_timeout: Application.get_env(:ambrosia, :request_timeout, 10_000)
+      request_timeout: Application.get_env(:ambrosia, :request_timeout, 10_000),
+      hostname: hostname,
+      environment: env,
+      # Only allow in dev/test, never in production
+      accept_any_host:
+        env != :prod && System.get_env("ACCEPT_ANY_HOST") == "true"
     }
   end
 end

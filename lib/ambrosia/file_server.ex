@@ -96,32 +96,36 @@ defmodule Ambrosia.FileServer do
         {59, "File too large (>100MB)"}
 
       {:ok, _stat} ->
-        # Check if file type is supported in Geminispace
-        case detect_mime(file_path) do
-          :unsupported ->
-            {59, "File type not supported"}
-
-          mime ->
-            # Path already validated - read file content into memory
-            # Using :file.read_file to avoid Sobelow false positive
-            case :file.read_file(file_path) do
-              {:ok, content} ->
-                {20, mime, content}
-
-              {:error, :enoent} ->
-                {51, "Not found"}
-
-              {:error, :eacces} ->
-                {50, "Permission denied"}
-
-              {:error, reason} ->
-                Logger.error("File read error: #{inspect(reason)}")
-                {40, "Temporary failure"}
-            end
-        end
+        serve_if_valid(file_path)
 
       {:error, _} ->
         {51, "Not found"}
+    end
+  end
+
+  defp serve_if_valid(file_path) do
+    # Check if file type is supported in Geminispace
+    case detect_mime(file_path) do
+      :unsupported ->
+        {59, "File type not supported"}
+
+      mime ->
+        # Path already validated - read file content into memory
+        # This might eventually need a better approach for large documents
+        case :file.read_file(file_path) do
+          {:ok, content} ->
+            {20, mime, content}
+
+          {:error, :enoent} ->
+            {51, "Not found"}
+
+          {:error, :eacces} ->
+            {50, "Permission denied"}
+
+          {:error, reason} ->
+            Logger.error("File read error: #{inspect(reason)}")
+            {40, "Temporary failure"}
+        end
     end
   end
 
@@ -133,9 +137,18 @@ defmodule Ambrosia.FileServer do
         normalized_root = Path.expand(root_dir)
 
         relative_path = Path.relative_to(normalized_dir, normalized_root)
-        display_path = if relative_path == ".", do: "/", else: "/" <> relative_path
 
-        listing = build_directory_gemtext(display_path, normalized_dir, files, normalized_root)
+        display_path =
+          if relative_path == ".", do: "/", else: "/" <> relative_path
+
+        listing =
+          build_directory_gemtext(
+            display_path,
+            normalized_dir,
+            files,
+            normalized_root
+          )
+
         {20, "text/gemini", listing}
 
       {:error, _} ->

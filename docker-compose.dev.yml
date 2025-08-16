@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   ambrosia:
     # Use local build instead of pulling image
@@ -17,4 +15,11 @@ services:
       - ROOT_DIR=/app/gemini
       - METRICS_ENABLED=true    # Enable metrics for dev
       - LOG_LEVEL=debug         # More verbose logging
+      - RATE_LIMIT_REQUESTS=20  # More suitable for dev but can be changed for testing
+      - RATE_LIMIT_WINDOW_MS=1000
+      - GEMINI_PORT=1965
+      - CERT_FILE=/certs/cert.pem
+      - KEY_FILE=/certs/key.pem
+      - MAX_CONNECTIONS=1000
+      - REQUEST_TIMEOUT=10000
     restart: unless-stopped

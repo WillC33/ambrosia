@@ -69,13 +69,16 @@ defmodule Ambrosia.Request do
   defp normalize_path(""), do: "/"
   defp normalize_path(path), do: path
 
+  defp permitted_hostname?(host, config) do
+    config[:hostname] &&
+      host in String.split(config[:hostname], ",", trim: true)
+  end
+
   @doc """
   Check if request is valid for this server (not a proxy request).
   """
   def valid_for_server?(%__MODULE__{host: host}, config) do
-    # Accept requests for localhost, configured hostname, or any host (for testing)
-    host in ["localhost", "127.0.0.1", config[:hostname]] or
-      config[:accept_any_host] == true
+    host in ["localhost", "127.0.0.1"] || permitted_hostname?(host, config)
   end
 
   @doc """

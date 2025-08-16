@@ -1,4 +1,7 @@
 defmodule Ambrosia.LogFormatter do
+  @moduledoc """
+    Formats frontmatter of logs into a friendlier format
+  """
   def format(level, message, timestamp, metadata) do
     datetime = format_time(timestamp)
     ip = Keyword.get(metadata, :peer_ip, "no-ip")
@@ -13,6 +16,6 @@ defmodule Ambrosia.LogFormatter do
     "#{date} #{time}"
   end
 
-  defp format_2digit(num), do: num |> Integer.to_string() |> String.pad_leading(2, "0")
+  defp format_2digit(num),
+    do: num |> Integer.to_string() |> String.pad_leading(2, "0")
 end
-
