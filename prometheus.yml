@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "ambrosia"
+    static_configs:
+      - targets: ["ambrosia:9568"]
+    metrics_path: /

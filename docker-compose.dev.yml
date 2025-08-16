@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  ambrosia:
+    # Use local build instead of pulling image
+    build: .
+    image: ambrosia:local
+    ports:
+      - "1965:1965"
+      - "127.0.0.1:9568:9568"   # Metrics (localhost only)
+    volumes:
+      - ./gemini:/app/gemini:ro
+      - ./certs:/certs:ro
+      - ./gemini-sample:/app/gemini-sample:ro  # For testing sample content
+    environment:
+      - HOSTNAME=localhost
+      - ROOT_DIR=/app/gemini
+      - METRICS_ENABLED=true    # Enable metrics for dev
+      - LOG_LEVEL=debug         # More verbose logging
+    restart: unless-stopped

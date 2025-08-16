@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+
+# Development
+.elixir_ls
+.formatter.exs
+.credo.exs
+.dialyzer_ignore.exs
+
+# Dependencies
+deps
+_build
+
+# Test files
+test
+coveralls.json
+.sobelow
+
+# Documentation
+README.md
+docs
+*.md
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Secrets - NEVER include these
+.env
+.env.*
+*.pem
+*.key
+*.crt
+certs/*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode
+.idea
+
+# Logs
+log
+*.log
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Content (mount as volume instead)
+gemini/*

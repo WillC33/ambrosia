@@ -1,0 +1,15 @@
+# Optional monitoring stack
+# Run with: docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'

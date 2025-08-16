@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  ambrosia:
+    image: WillC33/ambrosia:latest
+    ports:
+      - "1965:1965"              # Gemini port (public)
+      - "127.0.0.1:9568:9568"   # Metrics port (localhost only)
+    volumes:
+      # Optional: mount your content (comment out if using built-in sample)
+      # Because the docker file system is readonly
+      - ./gemini:/app/gemini:ro  # Your .gmi files go here
+      - ./certs:/certs:ro         # Optional: your TLS certs configured in start script if absent
+    environment:
+      - HOSTNAME=${HOSTNAME:-localhost}           # Your domain
+      - ROOT_DIR=/app/gemini
+      - METRICS_ENABLED=${METRICS_ENABLED:-false} # Enable telemetry
+      - METRICS_PORT=${METRICS_PORT:-9568}        # Prometheus metrics endpoint
+      - LOG_LEVEL=${LOG_LEVEL:-info}              # info, debug, warn, error
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=10M

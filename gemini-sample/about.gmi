@@ -1,0 +1,43 @@
+
+# About the Gemini Protocol
+
+Gemini is an awesome quiet internet experience
+* Is heavier than gopher
+* Is lighter than the web  
+* Will not replace either
+* Strives for maximum power to weight ratio
+* Takes user privacy seriously
+
+## What Makes Gemini Special?
+
+### Simplicity
+Gemini documents use a simple line-oriented format. No complex markup, no inline formatting, just clean readable text.
+
+### Privacy-First
+* No cookies
+* No JavaScript
+* No tracking pixels
+* No ads by design
+* Client certificates for identity (optional)
+
+### Lightweight
+* Small protocol specification
+* Minimal server requirements
+* Fast page loads
+* Works well on older hardware
+
+## Getting Started with Gemini
+
+To explore your capsule and Geminispace, you'll need a Gemini client. Popular options include:
+
+* Lagrange (GUI client for desktop)
+* Amfora (terminal-based client and Ambrosia's recommendation!)
+* Elaho (mobile client for iOS)
+* Ariane (mobile client for Android)
+
+=> gemini://geminiprotocol.net/ Official Gemini Protocol Site
+=> gemini://portal.mozz.us/ Mozz Portal (Web Proxy)
+=> / Back to Home
+
+---
+Served by Ambrosia Gemini Server

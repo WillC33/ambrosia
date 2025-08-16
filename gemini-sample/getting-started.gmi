@@ -1,0 +1,81 @@
+# Getting Started with Your Gemini Capsule
+
+Welcome to your new Gemini capsule! This guide will help you create your first content.
+
+## Understanding Gemtext
+
+Gemtext is the markup language used for Gemini pages. It's much simpler than HTML:
+
+### Text Lines
+Regular text appears as-is. No special formatting needed.
+
+### Headings
+```
+# Heading 1
+## Heading 2  
+### Heading 3
+```
+
+### Links
+```
+=> /page.gmi Link Text
+=> gemini://example.com/ External Link
+=> https://example.com/ Web Link (opens in browser)
+```
+
+### Lists
+```
+* List item one
+* List item two
+* List item three
+```
+
+### Quotes
+```
+> This is a quote
+> It can span multiple lines
+```
+
+### Preformatted Text
+```
+```
+Code or ASCII art goes here
+Multiple lines preserved
+```
+```
+
+## Creating Your First Pages
+
+1. Create a new .gmi file in your gemini directory
+2. Start with a heading using #
+3. Add some text content
+4. Include links to other pages
+5. Save and refresh your browser
+
+## File Organization
+
+```
+gemini/
+├── index.gmi          # Your homepage
+├── about.gmi          # About page
+├── blog/
+│   ├── index.gmi      # Blog index
+│   ├── 2024-01-01.gmi # Blog posts
+│   └── 2024-01-15.gmi
+└── projects/
+    ├── index.gmi      # Some other folder index
+    └── project1.gmi   # Individual projects
+```
+
+## Tips for Good Gemini Content
+
+* Keep paragraphs short and readable
+* Use headings to structure your content
+* Don't over-link - quality over quantity
+* Consider accessibility (screen readers work well with gemtext)
+* Focus on content over presentation
+
+=> / Back to Home
+
+---
+Happy writing! 🚀

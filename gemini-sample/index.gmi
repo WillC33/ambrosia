@@ -1,0 +1,38 @@
+# Welcome to Ambrosia! 
+
+You're seeing this sample content because the /app/gemini directory is empty.
+
+## Quick Start
+
+To add your own content, create .gmi files in the ./gemini directory on your host machine.
+
+## How to Add Your Content
+
+### Option 1: Create files on host
+Create a gemini/ folder next to your docker-compose.yml and add .gmi files there.
+
+### Option 2: Copy files into running container
+```
+docker cp myfile.gmi ambrosia:/app/gemini/
+docker restart ambrosia
+```
+
+### Option 3: Mount a directory
+Update docker-compose.yml to mount your content folder:
+```
+volumes:
+  - /path/to/your/content:/app/gemini:ro
+```
+
+## Sample Pages
+
+=> /about.gmi About Gemini Protocol
+=> /getting-started.gmi Getting Started Guide
+
+## External Links
+
+=> gemini://geminiprotocol.net/ Gemini Protocol
+=> https://codeberg.org/WillC33/ambrosia Ambrosia Source Code
+
+---
+Powered by Ambrosia Gemini Server
