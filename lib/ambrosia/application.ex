@@ -23,8 +23,10 @@ defmodule Ambrosia.Application do
         # Rate limiter (ETS-based)
         {Ambrosia.RateLimiter,
          [
-           max_requests: config[:rate_limit_requests] || 10,
-           window_ms: config[:rate_limit_window_ms] || 1000
+           max_requests:
+             String.to_integer(System.get_env("RATE_LIMIT_REQUESTS", "10")),
+           window_ms:
+             String.to_integer(System.get_env("RATE_LIMIT_WINDOW_MS", "1000"))
          ]},
         # Connection manager
         {Ambrosia.ConnectionManager, config},

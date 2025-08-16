@@ -1,14 +1,14 @@
 defmodule Ambrosia.RateLimiter do
   @moduledoc """
   Token bucket rate limiter using ETS for fast, concurrent access.
-  Each IP gets a bucket that refills over time. Probably no one is DDoSing Gemini
-  But we never know...
+  Each IP gets a bucket that refills over time.
   """
 
   use GenServer
   require Logger
 
   @table_name :ambrosia_rate_limits
+  @config_key :rate_limiter_config
   # Clean old entries every minute
   @cleanup_interval 60_000
 
@@ -23,13 +23,18 @@ defmodule Ambrosia.RateLimiter do
   def check_rate(ip) do
     now = System.system_time(:millisecond)
 
+    # Get config from ETS
+    [{@config_key, max_tokens, window_ms}] =
+      :ets.lookup(@table_name, @config_key)
+
+    # tokens per millisecond
+    refill_rate = max_tokens / window_ms
+
     case :ets.lookup(@table_name, ip) do
       [{^ip, tokens, last_refill}] ->
         # Calculate tokens to add based on time elapsed
         elapsed = now - last_refill
-        # 10 tokens per second
-        refill_rate = 10 / 1000
-        new_tokens = min(10, tokens + elapsed * refill_rate)
+        new_tokens = min(max_tokens, tokens + elapsed * refill_rate)
 
         if new_tokens >= 1 do
           # Consume a token
@@ -40,8 +45,8 @@ defmodule Ambrosia.RateLimiter do
         end
 
       [] ->
-        # New IP, give them a full bucket
-        :ets.insert(@table_name, {ip, 9, now})
+        # New IP, give them a full bucket minus one token
+        :ets.insert(@table_name, {ip, max_tokens - 1, now})
         :ok
     end
   end
@@ -59,15 +64,24 @@ defmodule Ambrosia.RateLimiter do
       {:write_concurrency, true}
     ])
 
+    # Get config from opts
+    max_requests = Keyword.get(opts, :max_requests, 10)
+    window_ms = Keyword.get(opts, :window_ms, 1000)
+
+    # Store config in ETS for check_rate to use
+    :ets.insert(@table_name, {@config_key, max_requests, window_ms})
+
     # Schedule cleanup
     schedule_cleanup()
 
     state = %{
-      max_requests: Keyword.get(opts, :max_requests, 100),
-      window_ms: Keyword.get(opts, :window_ms, 1000)
+      max_requests: max_requests,
+      window_ms: window_ms
     }
 
-    Logger.info("Rate limiter started: #{state.max_requests} requests per #{state.window_ms}ms")
+    Logger.info(
+      "Rate limiter started: #{max_requests} requests per #{window_ms}ms"
+    )
 
     {:ok, state}
   end
@@ -77,8 +91,10 @@ defmodule Ambrosia.RateLimiter do
     # Remove entries older than 5 minutes
     cutoff = System.system_time(:millisecond) - 300_000
 
+    # Don't delete the config entry!
     :ets.select_delete(@table_name, [
-      {{:_, :_, :"$1"}, [{:<, :"$1", cutoff}], [true]}
+      {{:"$1", :_, :"$2"},
+       [{:andalso, {:"/=", :"$1", @config_key}, {:<, :"$2", cutoff}}], [true]}
     ])
 
     schedule_cleanup()
@@ -89,3 +105,4 @@ defmodule Ambrosia.RateLimiter do
     Process.send_after(self(), :cleanup, @cleanup_interval)
   end
 end
+
