@@ -1,21 +1,7 @@
 # Ambrosia
 
-**TODO: Add description**
+Ambrosia is a Gemini protocol server for providing capsules on the Geminispace. It brings the power of BEAM in a simple container to Gemini.
+It's aimed at providing high uptime, massive concurrency and fault tolerance to serving capsules.
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ambrosia` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:ambrosia, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/ambrosia>.
+**Until its 1.0 Ambrosia should be considered preproduction, it currently contains some known vulnerabilities and is under active development**
 
