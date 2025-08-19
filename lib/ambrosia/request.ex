@@ -26,12 +26,14 @@ defmodule Ambrosia.Request do
     with {:ok, host, port, path_and_query} <- parse_authority(rest) do
       {path, query} = split_query(path_and_query)
 
+      decoded_path = path |> normalize_path |> URI.decode()
+
       {:ok,
        %__MODULE__{
          scheme: "gemini",
          host: host,
          port: port,
-         path: normalize_path(path),
+         path: decoded_path,
          query: query,
          raw: "gemini://#{rest}"
        }}
@@ -85,8 +87,10 @@ defmodule Ambrosia.Request do
   Check if the requested path is safe (no traversal).
   """
   def safe_path?(%__MODULE__{path: path}) do
-    # Reject ANY path with two dots
+    # Reject ANY path with two dots, backslashing (dockerised on Linux) and %
     # If somebody wishes to be more clever with this they are welcome
-    not String.contains?(path, "..")
+    # Because the % rejection will cause some valid use cases to be considered unsafe
+    not String.contains?(path, "..") &&
+      not String.contains?(path, "\\")
   end
 end

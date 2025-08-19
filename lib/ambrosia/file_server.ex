@@ -16,13 +16,22 @@ defmodule Ambrosia.FileServer do
   """
   def serve(%Request{path: path, peer_ip: peer_ip}, config) do
     with {:ok, safe_path} <- validate_and_normalize_path(path, config.root_dir),
-         {:ok, file_info} <- get_file_info(safe_path) do
+         {:ok, safe_path} <- reject_if_symlink(safe_path),
+         {:ok, file_info} <-
+           get_file_info(safe_path) do
       case file_info do
         :directory -> serve_directory(safe_path, config)
         :file -> serve_file(safe_path)
         :not_found -> {51, "Not found"}
       end
     else
+      {:error, :symlink} ->
+        Logger.warning(
+          "Prevented access to a symlinked file in your serving root. Remove the link as it is an insecure pattern, Request: #{path}"
+        )
+
+        {51, "Not found"}
+
       {:error, :traversal} ->
         Logger.metadata(peer_ip: peer_ip)
 
@@ -61,6 +70,13 @@ defmodule Ambrosia.FileServer do
 
       true ->
         {:error, :traversal}
+    end
+  end
+
+  defp reject_if_symlink(path) do
+    case :file.read_link(path) do
+      {:ok, _} -> {:error, :symlink}
+      {:error, _} -> {:ok, path}
     end
   end
 

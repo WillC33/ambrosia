@@ -37,7 +37,13 @@ defmodule Ambrosia.Handler do
 
           :rate_limited ->
             Logger.warning("Rate limited: #{ip_string}")
-            Response.send(socket, transport, {44, "Slow down! Rate limit exceeded"})
+
+            Response.send(
+              socket,
+              transport,
+              {44, "Slow down! Rate limit exceeded"}
+            )
+
             transport.close(socket)
         end
 
@@ -97,7 +103,11 @@ defmodule Ambrosia.Handler do
       # Path traversal check
       not Request.safe_path?(req) ->
         Logger.metadata(peer_ip: peer_ip)
-        Logger.warning("SECURITY: Path traversal attempt blocked! Request: #{req.path}")
+
+        Logger.warning(
+          "SECURITY: Path traversal attempt blocked! Request: #{req.path}"
+        )
+
         {51, "Not found"}
 
       # Serve the file
