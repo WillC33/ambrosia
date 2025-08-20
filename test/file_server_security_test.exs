@@ -187,6 +187,48 @@ defmodule Ambrosia.FileServerSecurityTest do
     end
   end
 
+  describe "symlink security" do
+    setup do
+      config = %{root_dir: @test_root}
+      {:ok, config: config}
+    end
+
+    test "blocks access to symlinked files", %{config: config} do
+      # Create a target file outside the root
+      target_file = Path.join(System.tmp_dir!(), "target.gmi")
+      File.write!(target_file, "Secret content")
+
+      # Create a symlink inside the root pointing to the target
+      symlink_path = Path.join(@test_root, "symlink.gmi")
+      File.ln_s!(target_file, symlink_path)
+
+      # Try to access the symlink
+      request = %Request{path: "symlink.gmi"}
+      assert {51, "Not found"} = FileServer.serve(request, config)
+
+      # Clean up
+      File.rm!(symlink_path)
+      File.rm!(target_file)
+    end
+
+    test "blocks symlinks even with valid .gmi extension", %{config: config} do
+      # Create a valid .gmi file outside root
+      target_file = Path.join(System.tmp_dir!(), "valid.gmi")
+      File.write!(target_file, "# Valid Gemini Content")
+
+      # Create symlink with proper extension
+      symlink_path = Path.join(@test_root, "looks_valid.gmi")
+      File.ln_s!(target_file, symlink_path)
+
+      request = %Request{path: "looks_valid.gmi"}
+      assert {51, "Not found"} = FileServer.serve(request, config)
+
+      # Clean up
+      File.rm!(symlink_path)
+      File.rm!(target_file)
+    end
+  end
+
   describe "edge cases" do
     setup do
       config = %{root_dir: @test_root}
@@ -228,7 +270,9 @@ defmodule Ambrosia.FileServerSecurityTest do
       {:ok, config: config}
     end
 
-    test "doesn't expose parent directory traversal in listings", %{config: config} do
+    test "doesn't expose parent directory traversal in listings", %{
+      config: config
+    } do
       request = %Request{path: "blog"}
       assert {20, "text/gemini", content} = FileServer.serve(request, config)
 

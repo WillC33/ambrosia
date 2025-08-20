@@ -74,6 +74,9 @@ defmodule Ambrosia.FileServer do
   end
 
   defp reject_if_symlink(path) do
+    # N.B This will only catch file level symlinking and is a failsafe for some 
+    # footguns without having to walk the whole filepath
+    # Don't put symlinks in your served files and don't symlink dirs that you are serving...
     case :file.read_link(path) do
       {:ok, _} -> {:error, :symlink}
       {:error, _} -> {:ok, path}
