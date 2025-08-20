@@ -11,14 +11,18 @@ defmodule Ambrosia.Request do
   Returns {:ok, %Request{}} or {:error, reason}
   """
   def parse(request_line) when is_binary(request_line) do
-    # Strip CRLF
-    url = String.trim(request_line)
-
-    # Check length
-    if byte_size(url) > @max_url_length do
-      {:error, :url_too_long}
+    unless String.ends_with?(request_line, "\r\n") do
+      {:error, :missing_crlf}
     else
-      parse_url(url)
+      # We will only accept lines with CRLF termniation but then discard it
+      url = String.trim(request_line)
+
+      # Check length
+      if byte_size(url) > @max_url_length do
+        {:error, :url_too_long}
+      else
+        parse_url(url)
+      end
     end
   end
 

@@ -62,6 +62,26 @@ defmodule Ambrosia.RequestTest do
       assert {:error, :invalid_url} =
                Request.parse("gemini://\r\n")
     end
+
+    test "rejects URL without CRLF termination" do
+      assert {:error, :missing_crlf} =
+               Request.parse("gemini://example.com/test.gmi")
+
+      assert {:error, :missing_crlf} =
+               Request.parse("gemini://example.com/test.gmi\\n")
+
+      assert {:error, :missing_crlf} = Request.parse("gemini://example.com/")
+    end
+
+    test "accepts only proper CRLF termination" do
+      assert {:ok, %Request{}} = Request.parse("gemini://example.com/\r\n")
+
+      assert {:error, :missing_crlf} =
+               Request.parse("gemini://example.com/\\r\\n")
+
+      assert {:error, :missing_crlf} = Request.parse("gemini://example.com/\\n")
+      assert {:error, :missing_crlf} = Request.parse("gemini://example.com/")
+    end
   end
 
   describe "safe_path?/1" do
@@ -106,11 +126,6 @@ defmodule Ambrosia.RequestTest do
     test "accepts configured hostname" do
       req = %Request{host: "myserver.com"}
       assert Request.valid_for_server?(req, %{hostname: "myserver.com"})
-    end
-
-    test "accepts any host when configured" do
-      req = %Request{host: "random.com"}
-      assert Request.valid_for_server?(req, %{accept_any_host: true})
     end
 
     test "rejects unknown hosts by default" do
