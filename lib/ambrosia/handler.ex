@@ -67,9 +67,8 @@ defmodule Ambrosia.Handler do
           {:ok, request} ->
             # Add peer_ip to the request struct
             request_with_ip = %{request | peer_ip: ip_string}
-            Logger.info("Request: #{inspect(request_with_ip)}")
+            Logger.info("Request: #{request_with_ip.path}")
 
-            # Process request with IP
             response = process_request({:ok, request_with_ip}, config)
             Response.send(socket, transport, response)
 
